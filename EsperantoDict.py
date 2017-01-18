@@ -1,5 +1,5 @@
 #! /usr/bin/env python3
-#GeologyDict by Ali M
+#Esperanto-Dictionary Written By Ali M
 import sqlite3 as sqlite
 import tkinter as tk
 from tkinter import Text
@@ -10,7 +10,7 @@ from tkinter import ttk
 #GUI Widgets
 
 
-class GeologyDict:
+class EsperantoDict:
     def __init__(self, master):
 
         master.title("EsperantoDict")
@@ -25,7 +25,7 @@ class GeologyDict:
         self.frame_header = ttk.Frame(master, relief=tk.FLAT)
         self.frame_header.pack(side=tk.TOP, padx=5, pady=5)
 
-        self.logo = tk.PhotoImage(file=r'C:\Geologydict\eo.png')
+        self.logo = tk.PhotoImage(file=r'C:\EsperantoDict\eo.png')
         self.small_logo = self.logo.subsample(10, 10)
 
         ttk.Label(self.frame_header, image=self.small_logo).grid(row=0, column=0, stick="ne", padx=5, pady=5, rowspan=2)
@@ -40,7 +40,7 @@ class GeologyDict:
         self.entry_search.bind('<Button-1>', self.entry_delete)
 
         self.button_search = ttk.Button(self.frame_content, text="Search")
-        self.aks = tk.PhotoImage(file=r'C:\Geologydict\search.png')
+        self.aks = tk.PhotoImage(file=r'C:\EsperantoDict\search.png')
         self.small_aks = self.aks.subsample(3, 3)
         self.button_search.config(image=self.small_aks, compound=tk.LEFT)
         self.button_search.grid(row=0, column=1, columnspan=2)
@@ -56,7 +56,7 @@ class GeologyDict:
         self.textbox.grid(row=1, column=2)
 
     # SQLite
-        self.db = sqlite.connect(r'C:\Geologydict\test.db')
+        self.db = sqlite.connect(r'C:\EsperantoDict\test.db')
         self.cur = self.db.cursor()
         self.cur.execute('SELECT Esperanto FROM Words')
         for row in self.cur:
@@ -77,7 +77,7 @@ class GeologyDict:
 
 def main():
     root = tk.Tk()
-    geologydict = GeologyDict(root)
+    esperantodict = EsperantoDict(root)
     root.mainloop()
 
 if __name__ == '__main__': main()
