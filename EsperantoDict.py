@@ -77,7 +77,7 @@ class EsperantoDict:
                 self.listbox.delete(0, tk.END)
                 self.listbox.insert(tk.END, item)
 
-    def edit_input(self, tag):
+    def edit_input(self, input):
         words = ["ĝ", "ĉ", "ĥ", "ĵ", "ŭ", "ŝ"]
         char = ["gx", "cx", "hx", "jx", "ux", "sx"]
         result = ''
@@ -89,12 +89,14 @@ class EsperantoDict:
                 elif char[1] in user_in:
                     result = words[1]
                 elif char[2] in user_in:
-                    result = words[3]
-                elif char[3] in user_in:
                     result = words[2]
+                elif char[3] in user_in:
+                    result = words[3]
                 elif char[4] in user_in:
                     result = words[4]
-            return self.entry_search.insert(tk.END, result)
+                elif char[5] in user_in:
+                    result = words[5]
+            return self.entry_search.insert(tk.INSERT, result)
 
     # SQLite
     def enter_meaning(self, tag):
