@@ -1,10 +1,9 @@
-#! /usr/bin/env python3
-#EsperantoDict by Ali M
 import sqlite3 as sqlite
 import tkinter as tk
 from tkinter import ttk
-#GUI Widgets
 
+
+# GUI Widgets
 
 class EsperantoDict:
     def __init__(self, master):
@@ -48,6 +47,7 @@ class EsperantoDict:
         self.small_photo_search = self.photo_search.subsample(3, 3)
         self.button_search.config(image=self.small_photo_search, compound=tk.LEFT, style="TButton")
         self.button_search.grid(row=0, column=2, columnspan=1, sticky='nw', padx=5)
+        self.button_search.bind('<Return>', self.search_word)
 
         self.listbox = tk.Listbox(self.frame_content, height=30, width=30)
         self.listbox.grid(row=1, column=0, padx=5)
@@ -63,63 +63,75 @@ class EsperantoDict:
         # SQLite
         self.db = sqlite.connect(r'C:\EsperantoDict\test.db')
         self.cur = self.db.cursor()
-        self.cur.execute('SELECT Esperanto FROM Words ORDER BY Esperanto')
+        self.cur.execute("SELECT Esperanto FROM Words ORDER BY Esperanto")
         for row in self.cur:
             self.listbox.insert(tk.END, row)
-        for row in range(0, self.listbox.size(), 2):
-            self.listbox.itemconfigure(row, background="#f0f0ff")
             self.update_list()
 
     def update_list(self):
-        search_term = self.search_var.get()
-        for item in self.listbox.get(0, tk.END):
-            if search_term.lower() in item:
-                self.listbox.delete(0, tk.END)
-                self.listbox.insert(tk.END, item)
+        self.listbox.delete(0, tk.END)
+        search_term = self.search_var.get().lower()
+        if search_term == 'type to search':
+            search_term = ''
+        self.cur.execute("SELECT Esperanto FROM Words WHERE LOWER(Esperanto) LIKE ? ORDER BY Esperanto",
+        ('%'+search_term+'%',))
+        for row in self.cur:
+            item = row[0]
+            self.listbox.insert(tk.END, item)
+        for row in range(0, self.listbox.size(), 2):
+            self.listbox.itemconfigure(row, background="#f0f0ff")
 
     def edit_input(self, input):
         words = ["ĝ", "ĉ", "ĥ", "ĵ", "ŭ", "ŝ"]
         char = ["gx", "cx", "hx", "jx", "ux", "sx"]
-        result = ''
+        letter = ''
         if True:
             user_in = self.search_var.get().lower()
             if user_in in char:
                 if char[0] in user_in:
-                    result = words[0]
+                    letter = words[0]
                 elif char[1] in user_in:
-                    result = words[1]
+                    letter = words[1]
                 elif char[2] in user_in:
-                    result = words[2]
+                    letter = words[2]
                 elif char[3] in user_in:
-                    result = words[3]
+                    letter = words[3]
                 elif char[4] in user_in:
-                    result = words[4]
+                    letter = words[4]
                 elif char[5] in user_in:
-                    result = words[5]
-            return self.entry_search.insert(tk.INSERT, result)
+                    letter = words[5]
+            return self.entry_search.insert(tk.INSERT, letter)
 
     # SQLite
     def enter_meaning(self, tag):
         for index in self.listbox.curselection():
             esperanto = self.listbox.get(index)
-            results = self.cur.execute("SELECT English FROM Words WHERE Esperanto = ?", esperanto)
-            for row in results:
+            results = self.cur.execute("SELECT English FROM Words WHERE Esperanto = ?", (esperanto,))
+        for row in results:
                 self.textbox.delete(1.0, tk.END)
-                self.textbox.insert(tk.END, row)
+                self.textbox.insert(tk.END, row[0])
 
     def entry_delete(self, tag):
-        self.entry_search.delete(0, tk.END)
+        if self.entry_search.get() == 'Type to Search':
+            self.entry_search.delete(0, tk.END)
         return None
 
     def entry_insert(self, tag):
-        self.entry_search.delete(0, tk.END)
-        self.entry_search.insert(0, "Type to Search")
+        if self.entry_search.get() == '':
+            self.entry_search.insert(0, "Type to Search")
         return None
+
+    def search_word(self):
+            esperanto = self.listbox.selection_set(0)
+            results = self.cur.execute("SELECT English FROM Words WHERE Esperanto = ?", (esperanto,))
+            for row in results:
+                self.textbox.delete(1.0, tk.END)
+                self.textbox.insert(tk.END, row[0])
 
 
 def main():
     root = tk.Tk()
-    esperantodict = EsperantoDict(root)
+    EsperantoDict(root)
     root.mainloop()
 
 
