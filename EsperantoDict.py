@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+# EsperantoDict Written by: Ali M
 import sqlite3 as sqlite
 import tkinter as tk
 from tkinter import ttk
@@ -42,12 +44,12 @@ class EsperantoDict:
         self.entry_search.focus()
         self.entry_search.bind("<KeyRelease>", self.edit_input)
 
-        self.button_search = ttk.Button(self.frame_content, text="Search")
+        self.button_search = ttk.Button(self.frame_content, text=u"Serĉu")
         self.photo_search = tk.PhotoImage(file=r'C:\EsperantoDict\search.png')
         self.small_photo_search = self.photo_search.subsample(3, 3)
         self.button_search.config(image=self.small_photo_search, compound=tk.LEFT, style="TButton")
         self.button_search.grid(row=0, column=2, columnspan=1, sticky='nw', padx=5)
-        self.button_search.bind('<Return>', self.search_word)
+        self.button_search.bind('<Return>', self.enter_meaning)
 
         self.listbox = tk.Listbox(self.frame_content, height=30, width=30)
         self.listbox.grid(row=1, column=0, padx=5)
@@ -74,7 +76,7 @@ class EsperantoDict:
         if search_term == 'type to search':
             search_term = ''
         self.cur.execute("SELECT Esperanto FROM Words WHERE LOWER(Esperanto) LIKE ? ORDER BY Esperanto",
-        ('%'+search_term+'%',))
+                         ('%' + search_term + '%',))
         for row in self.cur:
             item = row[0]
             self.listbox.insert(tk.END, item)
@@ -82,25 +84,25 @@ class EsperantoDict:
             self.listbox.itemconfigure(row, background="#f0f0ff")
 
     def edit_input(self, tag):
-        w = {'gx': 'ĝ', 'cx': 'ĉ', 'hx': 'ĥ', 'jx': 'ĵ', 'ux': 'ŭ', 'sx': 'ŝ'}
+        word_to_esp = {'gx': 'ĝ', 'cx': 'ĉ', 'hx': 'ĥ', 'jx': 'ĵ', 'ux': 'ŭ', 'sx': 'ŝ'}
         user_input = self.entry_search.get()
         user_input = user_input.lower()
-        for i in w:
+        for i in word_to_esp:
             if user_input.__contains__(i):
-                a = user_input.replace(i, w[i])
+                a = user_input.replace(i, word_to_esp[i])
                 return self.search_var.set(a)
 
     # SQLite
     def enter_meaning(self, tag):
-        for index in self.listbox.curselection():
+            index = self.listbox.curselection()[-1]
             esperanto = self.listbox.get(index)
             results = self.cur.execute("SELECT English FROM Words WHERE Esperanto = ?", (esperanto,))
-        for row in results:
+            for row in results:
                 self.textbox.delete(1.0, tk.END)
                 self.textbox.insert(tk.END, row[0])
 
     def entry_delete(self, tag):
-        if self.entry_search.get() == 'Type to Search':
+        if self.entry_search.get():
             self.entry_search.delete(0, tk.END)
             self.textbox.delete(1.0, tk.END)
         return None
@@ -109,13 +111,6 @@ class EsperantoDict:
         if self.entry_search.get() == '':
             self.entry_search.insert(0, "Type to Search")
         return None
-
-    def search_word(self, tag):
-        esperanto = self.listbox.selection_set(0)
-        results = self.cur.execute("SELECT English FROM Words WHERE Esperanto = ?", (esperanto,))
-        for row in results:
-            self.textbox.delete(1.0, tk.END)
-            self.textbox.insert(tk.END, row[0])
 
 
 def main():
