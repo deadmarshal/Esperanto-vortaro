@@ -2,6 +2,7 @@
 # EsperantoDict Written by: Ali M
 import sqlite3 as sqlite
 import tkinter as tk
+from doctest import master
 from tkinter import ttk
 
 
@@ -10,11 +11,11 @@ from tkinter import ttk
 class EsperantoDict:
     def __init__(self, master):
 
-        master.title("EsperantoDict")
+        master.title("EsperantoVortaro")
         master.iconbitmap("Esperanto.ico")
         master.resizable(False, False)
         master.configure(background='#EAFFCD')
-        self.style = ttk.Style()
+
         self.search_var = tk.StringVar()
         self.search_var.trace("w", lambda name, index, mode: self.update_list())
 
@@ -31,7 +32,7 @@ class EsperantoDict:
         self.small_logo = self.logo.subsample(10, 10)
 
         ttk.Label(self.frame_header, image=self.small_logo).grid(row=0, column=0, stick="ne", padx=5, pady=5, rowspan=2)
-        ttk.Label(self.frame_header, text='EsperantoDict', font=('Arial', 18, 'bold')).grid(row=0, column=1)
+        ttk.Label(self.frame_header, text='EsperantoVortaro', font=('Arial', 18, 'bold')).grid(row=0, column=1)
 
         self.frame_content = ttk.Frame(master)
         self.frame_content.config(style="TFrame")
@@ -44,12 +45,12 @@ class EsperantoDict:
         self.entry_search.focus()
         self.entry_search.bind("<KeyRelease>", self.edit_input)
 
-        self.button_search = ttk.Button(self.frame_content, text=u"Serĉu")
+        self.button_search = ttk.Button(self.frame_content, text=u"Serĉu", command=self.enter_meaning)
         self.photo_search = tk.PhotoImage(file=r'C:\EsperantoDict\search.png')
         self.small_photo_search = self.photo_search.subsample(3, 3)
         self.button_search.config(image=self.small_photo_search, compound=tk.LEFT, style="TButton")
         self.button_search.grid(row=0, column=2, columnspan=1, sticky='nw', padx=5)
-        self.button_search.bind('<Return>', self.enter_meaning)
+        self.button_search.bind('<Return>')
 
         self.listbox = tk.Listbox(self.frame_content, height=30, width=30)
         self.listbox.grid(row=1, column=0, padx=5)
@@ -60,12 +61,21 @@ class EsperantoDict:
 
         self.textbox = tk.Text(self.frame_content, relief=tk.GROOVE, width=60, height=30, borderwidth=2)
         self.textbox.config(wrap='word')
+        self.textbox.tag_configure('tag-right', justify='right')
         self.textbox.grid(row=1, column=2, sticky='w', padx=5)
+
+        self.menubar = tk.Menu(master)
+        master.configure(menu=self.menubar)
+        master.option_add('*tearOff', False)
+        self.about = tk.Menu(self.menubar)
+        self.menubar.add_cascade(menu=self.about, label='Helpo')
+        self.about.add_command(label='Pri ni', command=self.menu_click)
 
         # SQLite
         self.db = sqlite.connect(r'C:\EsperantoDict\test.db')
         self.cur = self.db.cursor()
         self.cur.execute("SELECT Esperanto FROM Words ORDER BY Esperanto")
+
         for row in self.cur:
             self.listbox.insert(tk.END, row)
             self.update_list()
@@ -92,14 +102,13 @@ class EsperantoDict:
                 a = user_input.replace(i, word_to_esp[i])
                 return self.search_var.set(a)
 
-    # SQLite
-    def enter_meaning(self, tag):
-            index = self.listbox.curselection()[-1]
-            esperanto = self.listbox.get(index)
-            results = self.cur.execute("SELECT English FROM Words WHERE Esperanto = ?", (esperanto,))
-            for row in results:
-                self.textbox.delete(1.0, tk.END)
-                self.textbox.insert(tk.END, row[0])
+    def enter_meaning(self, tag=None):
+        index = self.listbox.curselection()
+        esperanto = self.listbox.get(index)
+        results = self.cur.execute("SELECT English FROM Words WHERE Esperanto = ?", (esperanto,))
+        for row in results:
+            self.textbox.delete(1.0, tk.END)
+            self.textbox.insert(tk.END, row[0], 'tag-right')
 
     def entry_delete(self, tag):
         if self.entry_search.get():
@@ -112,15 +121,16 @@ class EsperantoDict:
             self.entry_search.insert(0, "Type to Search")
         return None
 
+    def menu_click(self):
+        self.window = tk.Toplevel(master, width=300, height=200)
+        self.window.title("Pri ni")
+
 
 def main():
     root = tk.Tk()
     EsperantoDict(root)
+    root.eval('tk::PlaceWindow %s center' % root.winfo_pathname(root.winfo_id()))
     root.mainloop()
 
 
 if __name__ == '__main__': main()
-
-# db tbl name: Words
-# db first field name: Esperanto
-# db second field name: English
