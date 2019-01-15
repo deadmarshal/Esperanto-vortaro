@@ -2,7 +2,6 @@
 # EsperantoDict Written by: Ali M
 import sqlite3 as sqlite
 import tkinter as tk
-from doctest import master
 from tkinter import ttk
 
 
@@ -45,12 +44,12 @@ class EsperantoDict:
         self.entry_search.focus()
         self.entry_search.bind("<KeyRelease>", self.edit_input)
 
-        self.button_search = ttk.Button(self.frame_content, text=u"Serĉu", command=self.enter_meaning)
+        self.button_search = ttk.Button(self.frame_content, text=u"Serĉu", command=self.button)
         self.photo_search = tk.PhotoImage(file=r'C:\EsperantoDict\search.png')
         self.small_photo_search = self.photo_search.subsample(3, 3)
         self.button_search.config(image=self.small_photo_search, compound=tk.LEFT, style="TButton")
         self.button_search.grid(row=0, column=2, columnspan=1, sticky='nw', padx=5)
-        self.button_search.bind('<Return>')
+        self.button_search.bind('<Return>', self.button)
 
         self.listbox = tk.Listbox(self.frame_content, height=30, width=30)
         self.listbox.grid(row=1, column=0, padx=5)
@@ -61,8 +60,9 @@ class EsperantoDict:
 
         self.textbox = tk.Text(self.frame_content, relief=tk.GROOVE, width=60, height=30, borderwidth=2)
         self.textbox.config(wrap='word')
-        self.textbox.tag_configure('tag-right', justify='right')
         self.textbox.grid(row=1, column=2, sticky='w', padx=5)
+        self.textbox.tag_configure("center", justify="center")
+        self.textbox.tag_add("center", 1.0, "end")
 
         self.menubar = tk.Menu(master)
         master.configure(menu=self.menubar)
@@ -108,7 +108,7 @@ class EsperantoDict:
         results = self.cur.execute("SELECT English FROM Words WHERE Esperanto = ?", (esperanto,))
         for row in results:
             self.textbox.delete(1.0, tk.END)
-            self.textbox.insert(tk.END, row[0], 'tag-right')
+            self.textbox.insert(tk.END, row[0])
 
     def entry_delete(self, tag):
         if self.entry_search.get():
@@ -121,9 +121,18 @@ class EsperantoDict:
             self.entry_search.insert(0, "Type to Search")
         return None
 
-    def menu_click(self):
-        self.window = tk.Toplevel(master, width=300, height=200)
-        self.window.title("Pri ni")
+    @staticmethod
+    def menu_click():
+        import doctest
+        window = tk.Toplevel(doctest.master, width=300, height=200)
+        window.title("Pri ni")
+
+    def button(self):
+        esperanto = self.search_var.get()
+        results = self.cur.execute("SELECT English FROM Words WHERE LOWER (Esperanto) = ?", (esperanto,))
+        for row2 in results:
+            self.textbox.delete(1.0, tk.END)
+            self.textbox.insert(tk.END, row2[0])
 
 
 def main():
@@ -133,4 +142,9 @@ def main():
     root.mainloop()
 
 
-if __name__ == '__main__': main()
+if __name__ == '__main__':
+    main()
+
+# db tbl name: Words
+# db first field name: Esperanto
+# db second field name: English
