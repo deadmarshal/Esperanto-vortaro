@@ -88,8 +88,7 @@ class EsperantoDict:
         self.cur.execute("SELECT Esperanto FROM Words WHERE LOWER(Esperanto) LIKE ? ORDER BY Esperanto",
                          ('%' + search_term + '%',))
         for row in self.cur:
-            item = row[0]
-            self.listbox.insert(tk.END, item)
+            self.listbox.insert(tk.END, row[0])
         for row in range(0, self.listbox.size(), 2):
             self.listbox.itemconfigure(row, background="#f0f0ff")
 
@@ -98,17 +97,17 @@ class EsperantoDict:
         user_input = self.entry_search.get()
         user_input = user_input.lower()
         for i in word_to_esp:
-            if user_input.__contains__(i):
-                a = user_input.replace(i, word_to_esp[i])
-                return self.search_var.set(a)
+            if i in user_input:
+                user_input = user_input.replace(i, word_to_esp[i])
+                return self.search_var.set(user_input)
 
     def enter_meaning(self, tag=None):
         index = self.listbox.curselection()
         esperanto = self.listbox.get(index)
-        results = self.cur.execute("SELECT English FROM Words WHERE Esperanto = ?", (esperanto,))
-        for row in results:
+        eng_words = self.cur.execute("SELECT English FROM Words WHERE Esperanto = ?", (esperanto,))
+        for word in eng_words:
             self.textbox.delete(1.0, tk.END)
-            self.textbox.insert(tk.END, row[0])
+            self.textbox.insert(tk.END, word[0])
 
     def entry_delete(self, tag):
         if self.entry_search.get():
